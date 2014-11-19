@@ -28,7 +28,8 @@ sed -i -e "s/expose_php\s*=\s*On/expose_php = Off/g" /etc/php5/fpm/php.ini && \
 sed -i -e "s/max_execution_time\s*=\s*30/max_execution_time = 60/g" /etc/php5/fpm/php.ini && \
 sed -i -e "s/upload_max_filesize\s*=\s*2M/upload_max_filesize = 100M/g" /etc/php5/fpm/php.ini && \
 sed -i -e "s/post_max_size\s*=\s*8M/post_max_size = 100M/g" /etc/php5/fpm/php.ini && \
-sed -i -e "s/;daemonize\s*=\s*yes/daemonize = no/g" /etc/php5/fpm/php-fpm.conf
+sed -i -e "s/;daemonize\s*=\s*yes/daemonize = no/g" /etc/php5/fpm/php-fpm.conf && \
+ln -s ../../mods-available/mcrypt.ini /etc/php5/fpm/conf.d/20-mcrypt.ini
 
 # Nginx config
 ADD ./nginx.conf /etc/nginx/nginx.conf

@@ -1,22 +1,37 @@
 #!/bin/bash
-if [ ! -f /srv/www/wp-config.php ]; then
-  SSH_PASSWORD=`pwgen -c -n -1 12`
+
+# SSH user password persistency
+# Also prints out the passwords on each container start
+if [ -f /srv/ssh-www-pw.txt ]; then
+
+  SSH_PASSWORD=`cat /srv/ssh-www-pw.txt`
+  MYSQL_PASSWORD=`cat /srv/mysql-root-pw.txt`
+  WORDPRESS_PASSWORD=`cat /srv/mysql-wordpress-pw.txt`
   echo "www:$SSH_PASSWORD" | chpasswd
-  echo SSH password: $SSH_PASSWORD
-  echo $WORDPRESS_PASSWORD > /ssh-user-pw.txt
+  echo "Password for SSH www user:" $SSH_PASSWORD
+  echo "Password for MySQL root user:" $MYSQL_PASSWORD
+  echo "Password for MySQL wordpress user:" $WORDPRESS_PASSWORD
+
+fi
+
+if [ ! -f /srv/www/wp-config.php ]; then
+
+  SSH_PASSWORD=`pwgen -c -n -1 12`
+  MYSQL_PASSWORD=`pwgen -c -n -1 12`
+  WORDPRESS_PASSWORD=`pwgen -c -n -1 12`
+  echo "www:$SSH_PASSWORD" | chpasswd
+  echo "Password for SSH www user:" $SSH_PASSWORD
+  echo "Password for MySQL root user:" $MYSQL_PASSWORD
+  echo "Password for MySQL wordpress user:" $WORDPRESS_PASSWORD
+  echo $WORDPRESS_PASSWORD > /srv/ssh-www-pw.txt
+  echo $MYSQL_PASSWORD > /srv/mysql-root-pw.txt
+  echo $WORDPRESS_PASSWORD > /srv/mysql-wordpress-pw.txt
+
+  WORDPRESS_DB="wordpress"
 
   #mysql has to be started this way as it doesn't work to call from /etc/init.d
   /usr/bin/mysqld_safe &
   sleep 10s
-  # Here we generate random passwords (thank you pwgen!). The first two are for mysql users, the last batch for random keys in wp-config.php
-  WORDPRESS_DB="wordpress"
-  MYSQL_PASSWORD=`pwgen -c -n -1 12`
-  WORDPRESS_PASSWORD=`pwgen -c -n -1 12`
-  #This is so the passwords show up in logs.
-  echo mysql root password: $MYSQL_PASSWORD
-  echo wordpress password: $WORDPRESS_PASSWORD
-  echo $MYSQL_PASSWORD > /mysql-root-pw.txt
-  echo $WORDPRESS_PASSWORD > /wordpress-db-pw.txt
 
   sed -e "s/database_name_here/$WORDPRESS_DB/
   s/username_here/$WORDPRESS_DB/
@@ -49,6 +64,8 @@ if ( count( \$plugins ) === 0 ) {
   }
 }
 ENDL
+
+  chown www:www /srv/www/wp-config.php
 
   mysqladmin -u root password $MYSQL_PASSWORD
   mysql -uroot -p$MYSQL_PASSWORD -e "GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' IDENTIFIED BY '$MYSQL_PASSWORD' WITH GRANT OPTION; FLUSH PRIVILEGES;"

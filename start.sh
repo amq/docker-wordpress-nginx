@@ -7,22 +7,27 @@ if [ -f /srv/ssh-www-pw.txt ]; then
   SSH_PASSWORD=`cat /srv/ssh-www-pw.txt`
   MYSQL_PASSWORD=`cat /srv/mysql-root-pw.txt`
   WORDPRESS_PASSWORD=`cat /srv/mysql-wordpress-pw.txt`
+  printf "\n"
   echo "www:$SSH_PASSWORD" | chpasswd
   echo "Password for SSH www user:" $SSH_PASSWORD
   echo "Password for MySQL root user:" $MYSQL_PASSWORD
   echo "Password for MySQL wordpress user:" $WORDPRESS_PASSWORD
+  printf "\n"
 
 fi
 
+# Configure Wordpress
 if [ ! -f /srv/www/wp-config.php ]; then
 
   SSH_PASSWORD=`pwgen -c -n -1 12`
   MYSQL_PASSWORD=`pwgen -c -n -1 12`
   WORDPRESS_PASSWORD=`pwgen -c -n -1 12`
+  printf "\n"
   echo "www:$SSH_PASSWORD" | chpasswd
   echo "Password for SSH www user:" $SSH_PASSWORD
   echo "Password for MySQL root user:" $MYSQL_PASSWORD
   echo "Password for MySQL wordpress user:" $WORDPRESS_PASSWORD
+  printf "\n"
   echo $WORDPRESS_PASSWORD > /srv/ssh-www-pw.txt
   echo $MYSQL_PASSWORD > /srv/mysql-root-pw.txt
   echo $WORDPRESS_PASSWORD > /srv/mysql-wordpress-pw.txt

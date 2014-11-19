@@ -2,24 +2,24 @@ FROM ubuntu:14.04
 MAINTAINER amq <https://github.com/amq>
 # Big thanks to jbfink and eugeneware
 
-# Keep upstart from complaining
-RUN dpkg-divert --local --rename --add /sbin/initctl && \
-ln -sf /bin/true /sbin/initctl
-
 # Let the conatiner know that there is no tty
 ENV DEBIAN_FRONTEND noninteractive
 
 RUN \
 apt-get update && \
 apt-get -y upgrade && \
-apt-get -y install nginx mysql-server curl git unzip unattended-upgrades openssh-server openssl && \
+apt-get -y install nginx mysql-server curl git unzip pwgen python-setuptools unattended-upgrades openssh-server openssl && \
 apt-get -y install php5-fpm php5-mysql php5-curl php5-gd php5-mcrypt php-pear php-soap && \
-RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+# Keep upstart from complaining
+RUN \
+dpkg-divert --local --rename --add /sbin/initctl && \
+ln -sf /bin/true /sbin/initctl && \
+mkdir /var/run/sshd
 
 RUN \
-USER_PASSWORD=`pwgen -c -n -1 12` && \
-useradd -m -p $USER_PASSWORD -G sudo -s /bin/bash www && \
-echo user password: $USER_PASSWORD && \
+useradd -m -G sudo -s /bin/bash www && \
 sed -i -e "s/PermitRootLogin\syes/PermitRootLogin no/g" /etc/ssh/sshd_config && \
 sed -i -e"s/^bind-address\s*=\s*127.0.0.1/bind-address = 0.0.0.0/" /etc/mysql/my.cnf && \
 sed -i -e "s/;cgi.fix_pathinfo=1/cgi.fix_pathinfo=0/g" /etc/php5/fpm/php.ini && \
@@ -56,6 +56,7 @@ RUN chmod 755 /start.sh
 VOLUME ["/srv", "/var/lib/mysql", "/var/log/nginx"]
 
 # Private expose
+EXPOSE 22
 EXPOSE 3306
 EXPOSE 80
 
